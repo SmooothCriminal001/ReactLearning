@@ -1,7 +1,8 @@
 import './App.css'
 //import Clicker from './Clicker'
 //import PropertyList from './PropertyList'
-import ColorBoxGrid from './ColorBoxGrid'
+//import ColorBoxGrid from './ColorBoxGrid'
+import ScoreKeeper from './ScoreKeeper';
 
 const properties = [
   { id:129031, name: "Desert Yurt", rating: 4.9, price:150 },
@@ -35,7 +36,9 @@ function App() {
 
   return (
     <>
-      <ColorBoxGrid colors={colors}/>
+      <ScoreKeeper numPlayers={5} target={4}/>
+      
+      { /*<ColorBoxGrid colors={colors}/> */}
 
       { /*
       <Clicker message="You are going to be infected!" buttonText="Don't click this!" />
