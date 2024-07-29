@@ -36,6 +36,7 @@ function App() {
 
   return (
     <>
+
       <ScoreKeeper numPlayers={5} target={4}/>
       
       { /*<ColorBoxGrid colors={colors}/> */}
