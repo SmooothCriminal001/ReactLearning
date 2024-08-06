@@ -66,6 +66,9 @@ export default function FriendsSplitBill({ friendsList }){
                 { showFriendAdd ? 'Close' : 'Add' }
             </Button>
         </div>
-        {selectedFriend && <FormSplitBill friend={selectedFriend} onBillSplit={billSplit}/>}
+        {/* key prop is used in FormSplitBill to ensure that the component re-renders when selected friend is changed*/}
+        {/* If it is not given, FormSplitBill will hold the same form value even when a different friend is selected */}
+        {/* We are forcing FormSplitBill to re-render and have a state-reset by giving it a key and updating the key at will */}
+        {selectedFriend && <FormSplitBill friend={selectedFriend} onBillSplit={billSplit} key={selectedFriend.id}/>}
     </>
 }
