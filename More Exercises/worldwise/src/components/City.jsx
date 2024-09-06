@@ -18,11 +18,10 @@ function City() {
 
   const { id } = useParams()
   const { selectedCity, getCity, isLoading } = useCities()
-  const navigate = useNavigate()
 
   useEffect(() => {
     getCity(id)
-  }, [id])
+  }, [id, getCity])
 
   const { cityName, emoji, date, notes } = selectedCity;
 

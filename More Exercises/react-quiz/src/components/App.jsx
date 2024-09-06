@@ -1,4 +1,3 @@
-import { useEffect, useReducer } from "react"
 import Content from "./Content"
 import Header from "./Header"
 import Error from "./Error"
@@ -9,20 +8,9 @@ import Options from "./Options"
 import NextButton from "./NextButton"
 import Progress from "./Progress"
 import Finish from "./Finish"
-import { useTimer } from "../hooks/useTimer"
 import Timer from "./Timer"
 
-const SECS_EACH_QUESTION = 30
-
-const types = {
-  loadQuestions: "loadQuestions",
-  loadError: "loadError",
-  quizStart: "quizStart",
-  onAnswering: "onAnswering",
-  onNextClick: "onNextClick",
-  onFinish: "onFinish",
-  onRestart: "onRestart",
-}
+import { useQuiz } from "../contexts/QuizContext"
 
 const statuses = {
   error: "error",
@@ -32,91 +20,9 @@ const statuses = {
   finish: "finish",
 }
 
-const initialData = {
-  questions: [],
-  status: statuses.loading,
-  index: 0,
-  currentAnswerIndex: null,
-  points: 0
-}
-
-const reducer = (state, {type, payload}) => {
-  switch(type) {
-      case types.loadQuestions:
-        return {...state, status: statuses.ready, questions: payload}
-      case types.loadError:
-        return {...state, status: statuses.error}
-      case types.quizStart:
-        return {...state, status: statuses.active}
-      case types.onAnswering:
-        {
-          const currentQuestion = state.questions[state.index]
-          return {
-            ...state, 
-            currentAnswerIndex: payload,
-            points: (currentQuestion.correctOption === payload ? state.points + currentQuestion.points : state.points)
-          }
-        }
-      case types.onNextClick:
-        return {
-          ...state,
-          index: state.index + 1,
-          currentAnswerIndex: null
-        }
-      case types.onFinish:
-        return{
-          ...state,
-          currentAnswerIndex: null,
-          status: statuses.finish
-        }
-      case types.onRestart:
-        return {
-          ...initialData,
-          questions: state.questions,
-          status: statuses.ready
-        }
-      default:
-        console.log("error")
-  }
-}
-
 function App() {
 
-  const [{
-    questions,
-    status,
-    index,
-    currentAnswerIndex,
-    points
-  }, dispatch] = useReducer(reducer, initialData)
-
-  const [, minutes, seconds] = useTimer(
-    status == statuses.active,
-    (questions.length * SECS_EACH_QUESTION),
-    () => { dispatch({ type: types.onFinish })}
-  )
-
-  useEffect(() => {
-    async function getJsonData(){
-      try{
-        const data = await fetch("http://localhost:8000/questions");
-        const json = await data.json();
-
-        dispatch({type: types.loadQuestions, payload: json})
-      }
-      catch(e){
-        dispatch({type: types.loadError})
-      }
-    }
-
-    getJsonData()
-  }, [dispatch])
-  
-  const currentQuestion = questions[index]
-  const maxPossiblePoints = questions.length > 0
-   ? questions.map(eachQuestion => eachQuestion.points).reduce((acc, eachPoint) => acc + eachPoint)
-   : 0
-
+  const { status, currentAnswerIndex } = useQuiz()
 
   return (
     <div className="app">
@@ -125,40 +31,21 @@ function App() {
       {status == statuses.error && <Error />}
       <Content>
         {status == statuses.ready && 
-          <Start 
-            numOfQuestions={questions.length} 
-            onstartClick={() => dispatch({type: types.quizStart})}
-          />
+          <Start />
         }
         {status == statuses.active && 
-          <Question question={currentQuestion}>
-            <Progress 
-              currentAnswerIndex={ currentAnswerIndex }
-              currentIndex={ index }
-              totalQuestionsNumber={ questions.length }
-              currentPoints={ points }
-              totalPoints= { maxPossiblePoints }
-            />
-            <Options 
-              question={currentQuestion} 
-              onAnswerClick={(clickedIndex) => dispatch({type: types.onAnswering, payload: clickedIndex})}
-              answerIndex={currentAnswerIndex}
-            />
-            <Timer minutes={minutes} seconds={seconds} />
+          <Question >
+            <Progress />
+            <Options />
+            <Timer />
             {currentAnswerIndex != null &&
-                <NextButton 
-                  currentAnswerIndex={currentAnswerIndex} 
-                  onNext = {() => dispatch({type: types.onNextClick})}
-                  currentQuestionIndex={ index }
-                  numberOfQuestions={ questions.length }
-                  onFinish = {() => dispatch({type: types.onFinish})}
-              />
+                <NextButton />
             }
           </Question>
         }
         
         {status === statuses.finish && 
-          <Finish points={points} maxPossiblePoints={ maxPossiblePoints } onRestart={() => dispatch({type: types.onRestart})}/>
+          <Finish />
         }
       </Content>
     </div>

@@ -1,7 +1,12 @@
+import { useQuiz } from "../contexts/QuizContext"
+
 /* eslint-disable react/prop-types */
-export default function Questions({ question, children }){
+export default function Question({  children }){
+
+    const { currentQuestion } = useQuiz()
+
     return <div className="question">
-        <h4>{question.question}</h4>
+        <h4>{currentQuestion.question}</h4>
         { children }
     </div>
 }

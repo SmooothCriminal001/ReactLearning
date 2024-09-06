@@ -1,5 +1,5 @@
 /* eslint-disable react/prop-types */
-import { createContext, useContext, useEffect, useReducer } from "react";
+import { createContext, useCallback, useContext, useEffect, useReducer } from "react";
 
 const CitiesContext = createContext()
 
@@ -81,22 +81,28 @@ function CitiesProvider( { children }){
         fetchCities()
     }, [])
 
-    async function getCity(id){
-        try{
-            dispatch({ type: types.startLoad })
-            const data = await fetch(`${BASE_URL}/cities/${id}`)
-            const cityData = await data.json()
+    const getCity = useCallback(async function(id){
+        {
+            if(id === selectedCity.id){
+                return
+            }
 
-            console.log(`selected city: ${JSON.stringify(cityData)}`);
-            dispatch( { type: types.updateSelectedCity, payload: cityData })
+            try{
+                dispatch({ type: types.startLoad })
+                const data = await fetch(`${BASE_URL}/cities/${id}`)
+                const cityData = await data.json()
+    
+                console.log(`selected city: ${JSON.stringify(cityData)}`);
+                dispatch( { type: types.updateSelectedCity, payload: cityData })
+            }
+            catch(error){
+                console.log(`There has been an error: ${error.message}`);
+            }
+            finally{
+                dispatch( { type: types.stopLoad } )
+            }
         }
-        catch(error){
-            console.log(`There has been an error: ${error.message}`);
-        }
-        finally{
-            dispatch( { type: types.stopLoad } )
-        }
-    }
+    }, [selectedCity.id])
 
     async function addCity(city){
         try{

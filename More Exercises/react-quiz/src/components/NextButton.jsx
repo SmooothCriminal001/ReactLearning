@@ -1,5 +1,16 @@
+import { useQuiz } from "../contexts/QuizContext"
+
 /* eslint-disable react/prop-types */
-export default function NextButton({ onNext, numberOfQuestions, currentQuestionIndex, onFinish }){
+export default function NextButton(){
+
+    const { 
+        onNextClick: onNext, 
+        index: currentQuestionIndex, 
+        onFinishClick: onFinish,
+        questions 
+    } = useQuiz()
+
+    const numberOfQuestions = questions.length
 
     if(currentQuestionIndex < numberOfQuestions - 1){
         return <button className="btn btn-ui" onClick={onNext}>Next</button>

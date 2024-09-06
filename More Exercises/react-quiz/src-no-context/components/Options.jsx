@@ -1,14 +1,5 @@
-import { useQuiz } from "../contexts/QuizContext"
-
 /* eslint-disable react/prop-types */
-export default function Options(){
-
-    const { 
-        currentQuestion: question, 
-        onAnswerClick, 
-        currentAnswerIndex: answerIndex 
-    } = useQuiz()
-    
+export default function Options({ question, onAnswerClick, answerIndex }){
     const hasBeenAnswered = answerIndex != null
 
     return <>{question.options.map((eachOption, i) => (

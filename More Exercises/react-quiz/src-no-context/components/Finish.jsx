@@ -1,10 +1,5 @@
-import { useQuiz } from "../contexts/QuizContext"
-
 /* eslint-disable react/prop-types */
-export default function Finish(){
-
-    const { points, maxPossiblePoints, onRestart } = useQuiz()
-
+export default function Finish({ points, maxPossiblePoints, onRestart }){
     const percentage = Math.ceil(points/maxPossiblePoints * 100)
     let emoji
 
