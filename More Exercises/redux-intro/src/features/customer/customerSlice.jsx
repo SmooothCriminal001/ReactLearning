@@ -1,51 +1,37 @@
-const types = {
-    createCustomer: "customer/createCustomer",
-    updateName: "customer/updateName",
-}
+import { createSlice } from "@reduxjs/toolkit"
 
 const initialState = {
-    fullName: 'Testing',
-    nationalID: '4563',
+    fullName: '',
+    nationalID: '',
     createdAt: ''
 }
 
-const reducer = (state = initialState, action) => {
-    const { type, payload } = action
-    switch(type){
-        case types.createCustomer:
-            return {
-                ...state,
-                fullName: payload.fullName,
-                nationalID: payload.nationalID,
-                createdAt: payload.createdAt
+const slice = createSlice({
+    name: "customer",
+    initialState,
+    reducers: {
+        createCustomer: {
+            prepare(fullName, nationalID){
+                return {
+                    payload: {
+                        fullName, 
+                        nationalID,
+                        createdAt: new Date().toISOString()
+                    }
+                }
+            },
+        
+            reducer(state, action){
+                state.fullName = action.payload.fullName
+                state.nationalID = action.payload.nationalID
+                state.createdAt = action.payload.createdAt
             }
-        case types.updateName:
-            return {
-                ...state,
-                fullName: payload
-            }
-        default:
-            return state
-    }
-}
-
-function createCustomer(fullName, nationalID){
-    return {
-        type: types.createCustomer,
-        payload: {
-            fullName,
-            nationalID,
-            createdAt: new Date().toISOString()
+        },
+        updateName(state, action){
+            state.fullName = action.payload
         }
     }
-}
+})
 
-function updateName(fullName){
-    return {
-        type: types.updateName,
-        payLoad: fullName
-    }
-}
-
-export default reducer
-export { createCustomer, updateName }
+export default slice.reducer
+export const { createCustomer, updateName } = slice.actions

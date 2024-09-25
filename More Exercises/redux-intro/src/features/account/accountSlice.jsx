@@ -1,8 +1,7 @@
+import { createSlice } from "@reduxjs/toolkit"
+
 const types = {
     deposit: 'account/deposit',
-    withdraw: 'account/withdraw',
-    requestLoan: 'account/requestLoan',
-    payLoan: 'account/payLoan',
     convertCurrency: 'account/convertCurrency'
 }
 
@@ -15,46 +14,46 @@ const initialState = {
     convertingCurrency: false
 }
 
-const reducer = (state = initialState, action) => {
-    const { type, payload } = action
-    switch(type){
-        case types.deposit:
-            return {
-                ...state,
-                balance: state.balance + payload,
-                convertingCurrency: false
+const slice = createSlice({
+    name: "account",
+    initialState,
+    reducers: {
+        deposit(state, action){
+          state.balance += action.payload
+          state.convertingCurrency = false
+        },
+        withdraw(state, action){
+            const reducedAmount = state.balance - action.payload
+            state.balance = reducedAmount <= 0 ? 0 : reducedAmount
+        },
+        requestLoan: {
+            prepare(amount, purpose){
+                return {
+                    payload: {
+                        amount, 
+                        purpose
+                    }
+                }
+            },
+        
+            reducer(state, action){
+                state.loan = action.payload.amount,
+                state.loanPurpose = action.payload.purpose,
+                state.balance += action.payload.amount
             }
-        case types.withdraw:
-            return {
-                ...state,
-                balance: (state.balance - payload) <= 0 ? 0 : (state.balance - payload)
-            }
-        case types.requestLoan:
-            if(state.loan > 0) return state
-            return {
-                ...state,
-                loan: payload.amount,
-                loanPurpose: payload.purpose,
-                balance: state.balance + payload.amount
-            }
-        case types.payLoan:
-            return {
-                ...state, 
-                loan: 0, 
-                loanPurpose: "", 
-                balance: state.balance - state.loan
-            }
-        case types.convertCurrency:
-            return {
-                ...state,
-                convertingCurrency: true
-            }
-        default:
-            return initialState
+        },
+        payLoan(state){
+            state.balance -= state.loan
+            state.loan = 0,
+            state.loanPurpose = ''
+        },
+        convertCurrency(state){
+            state.convertingCurrency = true
+        }
     }
-}
+})
 
-function deposit(amount, currency){
+export function deposit(amount, currency){
 
     if(currency === usd_currency) return { type: types.deposit, payload: amount}
 
@@ -70,23 +69,6 @@ function deposit(amount, currency){
     }
 }
 
-function withdraw(amount){
-    return { type: types.withdraw, payload: amount}
-}
 
-function requestLoan(amount, purpose){
-    return { 
-        type: types.requestLoan, 
-        payload: {
-            amount,
-            purpose
-        } 
-    }
-}
-
-function payLoan(){
-    return { type: types.payLoan }
-}
-
-export default reducer
-export { deposit, withdraw, requestLoan, payLoan }
+export default slice.reducer
+export const { withdraw, requestLoan, payLoan } = slice.actions
