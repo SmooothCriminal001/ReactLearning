@@ -1,0 +1,7 @@
+import { useNavigation } from "react-router-dom";
+
+function useNetworkState(){
+    const navigation = useNavigation()
+
+    return navigation.state == 
+}

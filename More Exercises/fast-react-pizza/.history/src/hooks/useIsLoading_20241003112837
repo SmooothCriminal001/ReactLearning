@@ -1,0 +1,11 @@
+import { useNavigation } from "react-router-dom";
+
+export default function useIsLoading(){
+    const navigation = useNavigation()
+    return navigation.state == "loading"
+}
+
+export function useIsSubmitting(){
+    const navigation = useNavigation()
+    return navigation.state == "submitting"
+}
