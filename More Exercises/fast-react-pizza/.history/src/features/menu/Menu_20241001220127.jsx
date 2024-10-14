@@ -1,9 +1,0 @@
-function Menu() {
-  return <h1>Menu</h1>;
-}
-
-export default Menu;
-
-export async function loader(){
-  const response =
-}

@@ -1,7 +1,0 @@
-import { useNavigation } from "react-router-dom";
-
-function useIsLoading(){
-    const navigation = useNavigation()
-
-    return navigation.state == "loading"
-}
