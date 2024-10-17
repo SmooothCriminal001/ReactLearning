@@ -51,7 +51,7 @@ function CreateOrder() {
   const totalPrice = totalCartPrice + priorityPrice;
 
   const {
-    username,
+    name: username,
     status: addressStatus,
     address,
     position,
