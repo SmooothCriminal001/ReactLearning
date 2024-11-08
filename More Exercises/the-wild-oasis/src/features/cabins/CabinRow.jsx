@@ -1,6 +1,11 @@
 /* eslint-disable react/prop-types */
 import styled from "styled-components";
 import { formatCurrency } from "../../utils/helpers";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { deleteCabin } from "../../services/apiCabins";
+import toast from "react-hot-toast";
+import { useState } from "react";
+import CreateCabinForm from "./CreateCabinForm";
 
 const TableRow = styled.div`
   display: grid;
@@ -42,13 +47,41 @@ const Discount = styled.div`
 `;
 
 export default function CabinRow({ cabin }) {
+  const queryClient = useQueryClient();
+  const [showEdit, setShowEdit] = useState();
+
+  const deletionResponse = useMutation({
+    mutationFn: (id) => deleteCabin(id),
+    onSuccess: () => {
+      toast.success(`Cabin-${cabin.id} deleted successfully`);
+      queryClient.invalidateQueries({
+        queryKey: ["cabins"],
+      });
+    },
+    onError: (err) => toast.error(err.message),
+  });
+
+  const { isPending: isDeletionPending, mutate } = deletionResponse;
+  console.group("deletionResponse");
+  console.dir(deletionResponse);
+  console.groupEnd();
+
   return (
-    <TableRow role="row">
-      <Img src={cabin.image} />
-      <Cabin>{cabin.name}</Cabin>
-      <div>Fits upto {cabin.maxCapacity} guests</div>
-      <Price>{formatCurrency(cabin.regularPrice)}</Price>
-      <Discount>{formatCurrency(cabin.discount)}</Discount>
-    </TableRow>
+    <>
+      <TableRow role="row">
+        <Img src={cabin.image} />
+        <Cabin>{cabin.name}</Cabin>
+        <div>Fits upto {cabin.maxCapacity} guests</div>
+        <Price>{formatCurrency(cabin.regularPrice)}</Price>
+        <Discount>{formatCurrency(cabin.discount)}</Discount>
+        <div>
+          <button onClick={(e) => setShowEdit((show) => !show)}>Edit</button>
+          <button disabled={isDeletionPending} onClick={() => mutate(cabin.id)}>
+            Delete
+          </button>
+        </div>
+      </TableRow>
+      {showEdit && <CreateCabinForm cabinToEdit={cabin} />}
+    </>
   );
 }
