@@ -21,30 +21,42 @@ export async function deleteCabin(id) {
   }
 }
 
-export async function createCabin(newCabin) {
-  const imageName = `${Math.random() * 100}-${newCabin.image.name}`.replace(
+export async function createEditCabin(cabin, id) {
+  console.group("cabin on create-edit");
+  console.dir(cabin);
+  console.groupEnd();
+
+  const hasImagePath = cabin.image?.startsWith?.(supabaseUrl);
+
+  const imageName = `${Math.random() * 100}-${cabin.image.name}`?.replace(
     "/",
     ""
   );
 
-  const imagePath = `${supabaseUrl}/storage/v1/object/public/cabin-images/${imageName}`;
+  const imagePath = hasImagePath
+    ? cabin.image
+    : `${supabaseUrl}/storage/v1/object/public/cabin-images/${imageName}`;
 
-  const { data, error } = await supabase
-    .from("cabins")
-    .insert([{ ...newCabin, image: imagePath }])
-    .select();
+  let data;
 
-  console.group("Created cabin");
+  console.log(`id is ${id}`);
+  if (!id) {
+    data = createCabin({ ...cabin, image: imagePath });
+  } else {
+    data = updateCabin({ ...cabin, image: imagePath }, id);
+  }
+
+  console.group("Created/updated cabin");
   console.dir(data);
   console.groupEnd();
-  if (error) {
-    console.log(error);
-    throw new Error(`New cabin could not be created`);
+
+  if (hasImagePath) {
+    return data;
   }
 
   const { data: imageData, error: imageUploadError } = await supabase.storage
     .from("cabin-images")
-    .upload(imageName, newCabin.image);
+    .upload(imageName, cabin.image);
 
   if (imageUploadError) {
     await deleteCabin(data.at(0).id);
@@ -53,4 +65,44 @@ export async function createCabin(newCabin) {
       "The image could not be uploaded, and the cabin was not created"
     );
   }
+}
+
+async function createCabin(cabinData) {
+  const { data, error } = await supabase
+    .from("cabins")
+    .insert([cabinData])
+    .select()
+    .single();
+
+  if (error) {
+    console.group("Cabin create error");
+    console.dir(error.message);
+    console.groupEnd();
+
+    throw new Error(`Cabin cannot be created`);
+  }
+
+  return data;
+}
+
+async function updateCabin(cabinData, cabinId) {
+  console.group("cabin for update");
+  console.dir(cabinData);
+  console.groupEnd();
+  const { data, error } = await supabase
+    .from("cabins")
+    .update(cabinData)
+    .eq("id", cabinId)
+    .select()
+    .single();
+
+  if (error) {
+    console.group("Cabin update error");
+    console.dir(error.message);
+    console.groupEnd();
+
+    throw new Error(`Cabin cannot be updated`);
+  }
+
+  return data;
 }

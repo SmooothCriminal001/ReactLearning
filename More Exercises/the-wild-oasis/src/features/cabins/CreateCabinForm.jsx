@@ -1,46 +1,47 @@
+/* eslint-disable react/prop-types */
 import Input from "../../ui/Input";
 import Form from "../../ui/Form";
 import Button from "../../ui/Button";
 import FileInput from "../../ui/FileInput";
 import Textarea from "../../ui/Textarea";
 import { useForm } from "react-hook-form";
-import { createCabin } from "../../services/apiCabins";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import toast from "react-hot-toast";
 import FormRow from "../../ui/FormRow";
+import { useCreateCabin } from "./useCreateCabin";
+import { useUpdateCabin } from "./useUpdateCabin";
 
 function CreateCabinForm({ cabinToEdit = {} }) {
-  const { register, handleSubmit, reset, getValues, formState } = useForm({
-    defaultValues: cabinToEdit,
-  });
   const { id: editId, ...editValues } = cabinToEdit;
   const isEditSession = Boolean(editId);
 
-  const queryClient = useQueryClient();
-
-  const response = useMutation({
-    mutationFn: createCabin,
-    onSuccess: () => {
-      toast.success("Cabin created successfully");
-      reset();
-      queryClient.invalidateQueries({
-        queryKey: ["cabins"],
-      });
-    },
-    onError: (err) => toast.error(err.message),
+  const { register, handleSubmit, reset, getValues, formState } = useForm({
+    defaultValues: editValues,
   });
 
   const { errors } = formState;
+  const {
+    isCreatingCabin: isCabinCreationLoading,
+    createCabin: createCabinFn,
+  } = useCreateCabin(reset);
 
-  const { isPending: isCabinCreationLoading, mutate: createCabinFn } = response;
+  const { isEditing: isEditPending, editCabin: editCabinFn } = useUpdateCabin();
+
+  const isWorking = isCabinCreationLoading || isEditPending;
 
   async function onSubmit(data) {
     /*console.group("Image data");
     console.dir(data.image[0]);
     console.groupEnd();
     */
+    const image = typeof data.image === "string" ? data.image : data.image[0];
 
-    createCabinFn({ ...data, image: data.image[0] });
+    if (isEditSession) {
+      editCabinFn({ newCabinData: { ...data, image }, id: editId });
+    } else {
+      createCabinFn(
+        { ...data, image: image },
+        { onSuccess: (data) => reset() }
+      );
+    }
   }
 
   function onError(errors) {}
@@ -131,7 +132,7 @@ function CreateCabinForm({ cabinToEdit = {} }) {
         <Button variation="secondary" type="reset">
           Cancel
         </Button>
-        <Button disabled={isCabinCreationLoading}>
+        <Button disabled={isWorking}>
           {isEditSession ? "Edit cabin" : "Create New Cabin"}
         </Button>
       </FormRow>
