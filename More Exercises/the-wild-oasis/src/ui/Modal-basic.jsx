@@ -1,16 +1,7 @@
 /* eslint-disable react/prop-types */
-import {
-  cloneElement,
-  createContext,
-  useContext,
-  useEffect,
-  useRef,
-  useState,
-} from "react";
 import { createPortal } from "react-dom";
 import { HiXMark } from "react-icons/hi2";
 import styled from "styled-components";
-import { useModalClose } from "../hooks/useModalClose";
 
 const StyledModal = styled.div`
   position: fixed;
@@ -61,50 +52,16 @@ const Button = styled.button`
   }
 `;
 
-const ModalContext = createContext();
-
-export function Modal({ children }) {
-  const [openName, setOpenName] = useState("");
-
-  const close = () => setOpenName("");
-  const openWindow = setOpenName;
-
-  return (
-    <ModalContext.Provider value={{ openName, close, openWindow }}>
-      {children}
-    </ModalContext.Provider>
-  );
-}
-
-function Open({ children, opens: nameOfWindowToOpen }) {
-  const { openWindow } = useContext(ModalContext);
-
-  const clonedChild = cloneElement(children, {
-    onClick: () => openWindow(nameOfWindowToOpen),
-  });
-  return clonedChild;
-}
-
-function Window({ children, name }) {
-  const { openName, close } = useContext(ModalContext);
-  const modalWindowRef = useModalClose(close);
-
-  if (name !== openName) {
-    return null;
-  }
-
+export function Modal({ children, onClose }) {
   return createPortal(
     <Overlay>
-      <StyledModal ref={modalWindowRef} id="Testingmodal">
-        <Button onClick={close}>
+      <StyledModal>
+        <Button onClick={onClose}>
           <HiXMark />
         </Button>
-        <div>{cloneElement(children, { onCloseModal: close })}</div>
+        {children}
       </StyledModal>
     </Overlay>,
     document.body
   );
 }
-
-Modal.Open = Open;
-Modal.Window = Window;
