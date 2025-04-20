@@ -1,22 +1,52 @@
+import { RECORDS_IN_A_PAGE } from "../utils/constants";
 import { getToday } from "../utils/helpers";
 import supabase from "./supabase";
 
-export async function getBookings() {
-  const { data, error } = await supabase
+export async function getBookings({ filter, sortBy, page }) {
+  console.log("Bookings called");
+  let supabaseCall = supabase
     .from("bookings")
     .select(
-      "id, created_at, startDate, endDate, numNights, numGuests, status, totalPrice, cabins(name), guests(fullName, email)"
+      "id, created_at, startDate, endDate, numNights, numGuests, status, totalPrice, cabins(name), guests(fullName, email)",
+      { count: "exact" }
     );
+  //.order("totalPrice", { ascending: true });
+
+  if (filter) {
+    supabaseCall = supabaseCall[filter.operation || "eq"](
+      filter.field,
+      filter.value
+    );
+  }
+
+  if (sortBy) {
+    supabaseCall = supabaseCall.order(sortBy.field, {
+      ascending: sortBy.sortByAscending,
+    });
+  }
+
+  if (page) {
+    const pageNumber = Number(page);
+    console.log(`PageNumber: ${pageNumber}`);
+    supabaseCall = supabaseCall.range(
+      (pageNumber - 1) * RECORDS_IN_A_PAGE,
+      pageNumber * RECORDS_IN_A_PAGE - 1
+    );
+  }
+
+  const { data, count, error } = await supabaseCall;
 
   if (error) {
     console.error(error);
     throw new Error("Bookings could not be loaded");
   }
 
-  return data;
+  //console.log(`Data: ${JSON.stringify(data)}`);
+  return { data, count };
 }
 
 export async function getBooking(id) {
+  console.log(`Get booking called`);
   const { data, error } = await supabase
     .from("bookings")
     .select("*, cabins(*), guests(*)")
@@ -28,6 +58,7 @@ export async function getBooking(id) {
     throw new Error("Booking not found");
   }
 
+  //console.log(`returned data: ${JSON.stringify(data)}`);
   return data;
 }
 
