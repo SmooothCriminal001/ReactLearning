@@ -57,5 +57,7 @@ export function useBookings() {
     });
   }
 
+  console.log(`Bookings: ${JSON.stringify(bookings)}`);
+
   return { bookings, count, isLoading, bookingsLoadError };
 }

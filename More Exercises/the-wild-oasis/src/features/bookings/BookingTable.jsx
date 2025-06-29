@@ -9,6 +9,12 @@ import Pagination from "../../ui/Pagination";
 function BookingTable() {
   const { bookings, count, isLoading } = useBookings();
 
+  /* For inducing an artificial error for checking Fallback functionality
+  if (bookings.length == 0) {
+    return <Empty resource="bookings" />;
+  }
+  */
+
   if (isLoading) {
     return <Spinner />;
   }
